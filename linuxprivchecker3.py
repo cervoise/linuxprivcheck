@@ -33,7 +33,9 @@ try:
 except ImportError:
     import os  # older version of python, need to use os instead
     compatmode = 1
-    
+
+import sys
+
 # title / formatting
 bigline = "================================================================================================="
 smlline = "-------------------------------------------------------------------------------------------------"
@@ -41,7 +43,12 @@ smlline = "---------------------------------------------------------------------
 print(bigline)
 print("LINUX PRIVILEGE ESCALATION CHECKER")
 print(bigline)
-print()
+print("")
+
+fast = False
+if len(sys.argv) > 1:
+    if sys.argv[1] == "--fast":
+        fast = True
 
 # loop through dictionary, execute the commands, store the results, return updated dict
 
@@ -51,7 +58,8 @@ def execCmd(cmdDict):
         if compatmode == 0:  # newer version of python, use preferred subprocess
             out, error = sub.Popen(
                 [cmd], stdout=sub.PIPE, stderr=sub.PIPE, shell=True).communicate()
-            out = out.decode('utf-8')
+            if (sys.version_info > (3, 0)):
+                out = out.decode('utf-8')
             results = out.split('\n')
         else:  # older version of python, use os.popen
             echo_stdout = os.popen(cmd, 'r')
@@ -69,7 +77,7 @@ def printResults(cmdDict):
         for result in results:
             if result.strip() != "":
                 print("    " + result.strip())
-        print()
+        print("")
     return
 
 def writeResults(msg, results):
@@ -116,6 +124,15 @@ netInfo = {"NETINFO": {"cmd": "/sbin/ifconfig -a", "msg": "Interfaces", "results
            }
 
 netInfo = execCmd(netInfo)
+
+if netInfo['NETINFO']['results'] == ['']:
+    netInfo = {"NETINFO": {"cmd": "ip address show", "msg": "Interfaces", "results": results},
+               "ROUTE": {"cmd": "ip route", "msg": "Route", "results": results},
+               "NETSTAT": {"cmd": "ss -lut | grep -v 'TIME_WAIT'", "msg": "Netstat", "results": results}
+           }
+    netInfo = execCmd(netInfo)
+
+
 printResults(netInfo)
 
 # File System Info
@@ -142,7 +159,7 @@ print("\n[*] ENUMERATING USER AND ENVIRONMENTAL INFO...\n")
 userInfo = {"WHOAMI": {"cmd": "whoami", "msg": "Current User", "results": results},
             "ID": {"cmd": "id", "msg": "Current User ID", "results": results},
             "ALLUSERS": {"cmd": "cat /etc/passwd", "msg": "All users", "results": results},
-            "SUPUSERS": {"cmd": "grep -v -E '^#' /etc/passwd | awk -F: '$3 == 0{print($1}'", "msg": "Super Users Found:", "results": results},
+            "SUPUSERS": {"cmd": "grep -v -E '^#' /etc/passwd | awk -F: '$3 == 0{print $1}'", "msg": "Super Users Found:", "results": results},
             "HISTORY": {"cmd": "ls -la ~/.*_history; ls -la /root/.*_history 2>/dev/null", "msg": "Root and current user history (depends on privs)", "results": results},
             "ENV": {"cmd": "env 2>/dev/null | grep -v 'LS_COLORS'", "msg": "Environment", "results": results},
             "GROUPS":{"cmd":"cat /etc/group |grep docker", "msg":"Users in docker group (https://fosterelli.co/privilege-escalation-via-docker.html)", "results":results},
@@ -167,17 +184,23 @@ fdPerms = {"WWDIRSROOT": {"cmd": "find / \( -wholename '/home/homedir*' -prune \
            "ROOTHOME": {"cmd": "ls -ahlR /root 2>/dev/null", "msg": "Checking if root's home folder is accessible", "results": results}
            }
 
-fdPerms = execCmd(fdPerms)
-printResults(fdPerms)
+#fdPerms = execCmd(fdPerms)
+#printResults(fdPerms)
 
-pwdFiles = {"LOGPWDS": {"cmd": "find /var/log -name '*.log' 2>/dev/null | xargs -l10 egrep 'pwd|password' 2>/dev/null", "msg": "Logs containing keyword 'password'", "results": results},
-            "CONFPWDS": {"cmd": "find /etc -name '*.c*' 2>/dev/null | xargs -l10 egrep 'pwd|password' 2>/dev/null", "msg": "Config files containing keyword 'password'", "results": results},
-            "SCRIPTPWDS":{"cmd":"find / -name '*.sh' 2>/dev/null | xargs -l10 egrep 'pwd|password' 2>/dev/null", "msg":"Sh scripts containing keyword 'password'", "results":results},
-            "SHADOW": {"cmd": "cat /etc/shadow 2>/dev/null", "msg": "Shadow File (Privileged)", "results": results}
-            }
+if fast:
+    pwdFiles = {"LOGPWDS": {"cmd": "find /var/log -name '*.log' 2>/dev/null | xargs -l10 egrep 'pwd|password' 2>/dev/null", "msg": "Logs containing keyword 'password'", "results": results},
+                "CONFPWDS": {"cmd": "find /etc -name '*.c*' 2>/dev/null | xargs -l10 egrep 'pwd|password' 2>/dev/null", "msg": "Config files containing keyword 'password'", "results": results},
+                "SHADOW": {"cmd": "cat /etc/shadow 2>/dev/null", "msg": "Shadow File (Privileged)", "results": results}
+               }
+else:
+    pwdFiles = {"LOGPWDS": {"cmd": "find /var/log -name '*.log' 2>/dev/null | xargs -l10 egrep 'pwd|password' 2>/dev/null", "msg": "Logs containing keyword 'password'", "results": results},
+                "CONFPWDS": {"cmd": "find /etc -name '*.c*' 2>/dev/null | xargs -l10 egrep 'pwd|password' 2>/dev/null", "msg": "Config files containing keyword 'password'", "results": results},
+                "SHADOW": {"cmd": "cat /etc/shadow 2>/dev/null", "msg": "Shadow File (Privileged)", "results": results},
+                "SCRIPTPWDS":{"cmd":"find / -name '*.sh' 2>/dev/null | xargs -l10 egrep 'pwd|password' 2>/dev/null", "msg":"Sh scripts containing keyword 'password'", "results":results}
+               }
 
-pwdFiles = execCmd(pwdFiles)
-printResults(pwdFiles)
+#pwdFiles = execCmd(pwdFiles)
+#printResults(pwdFiles)
 
 # Processes and Applications
 print("[*] ENUMERATING PROCESSES AND APPLICATIONS...\n")
@@ -248,7 +271,7 @@ for key in procdict:
 # EXPLOIT ENUMERATION
 
 # First discover the avaialable tools
-print()
+print("")
 print("[*] ENUMERATING INSTALLED LANGUAGES/TOOLS FOR SPLOIT BUILDING...\n")
 
 devTools = {"TOOLS": {"cmd": "which awk perl python ruby gcc cc vi vim nmap find netcat nc wget tftp ftp 2>/dev/null",
@@ -264,12 +287,14 @@ for cmd in escapeCmd:
         if cmd in result:
             for item in escapeCmd[cmd]:
                 print("    " + cmd + "-->\t" + item)
-print()
+print("")
 print("[*] FINDING RELEVENT PRIVILEGE ESCALATION EXPLOITS...\n")
 
 # Now check for relevant exploits (note: this list should be updated over time; source: Exploit-DB)
 # sploit format = sploit name : {minversion, maxversion, exploitdb#, language, {keywords for applicability}} -- current keywords are 'kernel', 'proc', 'pkg' (unused), and 'os'
-sploits = {"Linux BPF Sign Extension Local Privilege Escalation":{"minver":"4.4.0", "maxver":"4.14.18", "exploitdb":"45058", "lang":"c", "keywords":{"loc":["kernel"], "val":"kernel"}},
+sploits = {"Linux 5.3 - Privilege Escalation via io_uring Offload of sendmsg() onto Kernel Thread with Kernel Creds":{"minver":"4.4.0", "maxver":"4.14.18", "exploitdb":"47779", "lang":"ruby", "keywords":{"loc":["kernel"], "val":"kernel"}},
+           "OpenSMTPD - OOB Read Local Privilege Escalation": {"minver": "6.4.0", "maxver": "6.6.4", "exploitdb": "48185", "lang": "ruby", "keywords": {"loc": ["proc", "pkg"], "val": "opensmtpd"}},
+           "Linux BPF Sign Extension Local Privilege Escalation":{"minver":"5.3", "maxver":"5.4.2", "exploitdb":"45058", "lang":"c", "keywords":{"loc":["kernel"], "val":"kernel"}},
            "Linux Kernel 2.6.22 < 3.9 (x86/x64) - Dirty COW - SUID Method":{"minver":"2.6.22", "maxver":"3.9", "exploitdb":"40616", "lang":"c", "keywords":{"loc":["kernel"], "val":"kernel"}},
            "Linux Kernel 2.6.22 < 3.9  (x86/x64) - Dirty COW - Firefart":{"minver":"2.6.22", "maxver":"3.9", "exploitdb":"40839", "lang":"c", "keywords":{"loc":["kernel"], "val":"kernel"}},
            "2.2.x-2.4.x ptrace kmod local exploit": {"minver": "2.2", "maxver": "2.4.99", "exploitdb": "3", "lang": "c", "keywords": {"loc": ["kernel"], "val": "kernel"}},
@@ -327,13 +352,13 @@ sploits = {"Linux BPF Sign Extension Local Privilege Escalation":{"minver":"4.4.
            "CAP_SYS_ADMIN to root Exploit": {"minver": "0", "maxver": "99", "exploitdb": "15916", "lang": "c", "keywords": {"loc": ["kernel"], "val": "kernel"}},
            "CAP_SYS_ADMIN to Root Exploit 2 (32 and 64-bit)": {"minver": "0", "maxver": "99", "exploitdb": "15944", "lang": "c", "keywords": {"loc": ["kernel"], "val": "kernel"}},
            "< 2.6.36.2 Econet Privilege Escalation Exploit": {"minver": "0", "maxver": "2.6.36.2", "exploitdb": "17787", "lang": "c", "keywords": {"loc": ["kernel"], "val": "kernel"}},
-           "Sendpage Local Privilege Escalation": {"minver": "0", "maxver": "99", "exploitdb": "19933", "lang": "ruby", "keywords": {"loc": ["kernel"], "val": "kernel"}},
+           "Sendpage Local Privilege Escalation": {"minver": "2.4.4", "maxver": "2.4.37.4", "exploitdb": "19933", "lang": "ruby", "keywords": {"loc": ["kernel"], "val": "kernel"}},
+           "Sendpage Local Privilege Escalation": {"minver": "2.6.0", "maxver": "2.6.30.4", "exploitdb": "19933", "lang": "ruby", "keywords": {"loc": ["kernel"], "val": "kernel"}},
            "2.4.18/19 Privileged File Descriptor Resource Exhaustion Vulnerability": {"minver": "2.4.18", "maxver": "2.4.19", "exploitdb": "21598", "lang": "c", "keywords": {"loc": ["kernel"], "val": "kernel"}},
            "2.2.x/2.4.x Privileged Process Hijacking Vulnerability (1)": {"minver": "2.2", "maxver": "2.4.99", "exploitdb": "22362", "lang": "c", "keywords": {"loc": ["kernel"], "val": "kernel"}},
            "2.2.x/2.4.x Privileged Process Hijacking Vulnerability (2)": {"minver": "2.2", "maxver": "2.4.99", "exploitdb": "22363", "lang": "c", "keywords": {"loc": ["kernel"], "val": "kernel"}},
            "Samba 2.2.8 Share Local Privilege Elevation Vulnerability": {"minver": "2.2.8", "maxver": "2.2.8", "exploitdb": "23674", "lang": "c", "keywords": {"loc": ["proc", "pkg"], "val": "samba"}},
-           "open-time Capability file_ns_capable() - Privilege Escalation Vulnerability": {"minver": "0", "maxver": "99", "exploitdb": "25307", "lang": "c", "keywords": {"loc": ["kernel"], "val": "kernel"}},
-           "open-time Capability file_ns_capable() Privilege Escalation": {"minver": "0", "maxver": "99", "exploitdb": "25450", "lang": "c", "keywords": {"loc": ["kernel"], "val": "kernel"}},
+           "open-time Capability file_ns_capable() Privilege Escalation": {"minver": "0", "maxver": "3.8.9", "exploitdb": "25450", "lang": "c", "keywords": {"loc": ["kernel"], "val": "kernel"}},
            }
 
 # variable declaration
@@ -395,17 +420,17 @@ for sploit in sploits:
                 avgprob.append(sploitout)
 
 print("    Note: Exploits relying on a compile/scripting language not detected on this system are marked with a '**' but should still be tested!")
-print()
+print("")
 
 print("    The following exploits are ranked higher in probability of success because this script detected a related running process, OS, or mounted file system")
 for exploit in highprob:
     print("    - " + exploit)
-print()
+print("")
 
 print("    The following exploits are applicable to this kernel version and should be investigated as well")
 for exploit in avgprob:
     print("    - " + exploit)
 
-print()
+print("")
 print("Finished")
 print(bigline)
