@@ -5,16 +5,15 @@ Original author is Mike Czumak (T_v3rn1x) -- @SecuritySift.
 
 ## Scripts
 
-* linuxprivchecker.py: Famous linuxprivchecker.py with updates
-* linuxprivchecker3.py: Famous linuxprivchecker.py for Python 3 with updates
+* old-linuxprivchecker.py: Famous linuxprivchecker.py (Python) with updates - I'll not update it anymore.
+* linuxprivchecker3.py: Famous linuxprivchecker.py, compatible both Python 2 & 3 with updates.
 
 ## Known issues
-* Python 3 version is not able to find superuser.
-* No real Licence is defined (https://github.com/cervoise/linuxprivcheck/issues/1)
+* No real Licence is defined (https://github.com/cervoise/linuxprivcheck/issues/1).
 
 ## What if Python is not on the target?
 
-On Kali (or other Linux) install pyinstaller :
+On Kali (or other Linux) install pyinstaller:
 
 ```bash
 $ pip install pyinstaller
@@ -30,6 +29,11 @@ $ python3 -m PyInstaller --onefile linuxprivchecker3.py
 
 Standalone ELF will be in *./dist/*
 
+### Known issues
+ * Will not work if the libc version needed is not on your target 
+
 ## Help
 
-If you need help with SUID and cronjob lists check this repo: https://github.com/cervoise/suid-bin/
+If you need help with SUID and cronjob lists check this repo: https://github.com/cervoise/suid-bin/ or this project: https://github.com/TH3xACE/SUDO_KILLER.
+
+If you need to find passwords you can look on https://github.com/AlessandroZ/LaZagne or https://github.com/0xmitsurugi/gimmecredz.
