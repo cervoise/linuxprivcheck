@@ -184,8 +184,8 @@ fdPerms = {"WWDIRSROOT": {"cmd": "find / \( -wholename '/home/homedir*' -prune \
            "ROOTHOME": {"cmd": "ls -ahlR /root 2>/dev/null", "msg": "Checking if root's home folder is accessible", "results": results}
            }
 
-#fdPerms = execCmd(fdPerms)
-#printResults(fdPerms)
+fdPerms = execCmd(fdPerms)
+printResults(fdPerms)
 
 if fast:
     pwdFiles = {"LOGPWDS": {"cmd": "find /var/log -name '*.log' 2>/dev/null | xargs -l10 egrep 'pwd|password' 2>/dev/null", "msg": "Logs containing keyword 'password'", "results": results},
@@ -199,8 +199,8 @@ else:
                 "SCRIPTPWDS":{"cmd":"find / -name '*.sh' 2>/dev/null | xargs -l10 egrep 'pwd|password' 2>/dev/null", "msg":"Sh scripts containing keyword 'password'", "results":results}
                }
 
-#pwdFiles = execCmd(pwdFiles)
-#printResults(pwdFiles)
+pwdFiles = execCmd(pwdFiles)
+printResults(pwdFiles)
 
 # Processes and Applications
 print("[*] ENUMERATING PROCESSES AND APPLICATIONS...\n")
