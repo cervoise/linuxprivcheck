@@ -1,5 +1,5 @@
 # linuxprivcheck
-Python script for privilege escalation for Python
+Python script for privilege escalation for Linux
 
 Original author is Mike Czumak (T_v3rn1x) -- @SecuritySift.
 
@@ -7,6 +7,10 @@ Original author is Mike Czumak (T_v3rn1x) -- @SecuritySift.
 
 * old-linuxprivchecker.py: Famous linuxprivchecker.py (Python) with updates - I'll not update it anymore.
 * linuxprivchecker3.py: Famous linuxprivchecker.py, compatible both Python 2 & 3 with updates.
+
+## Options
+
+The *--fast* does not perform check for passwords in .sh files.
 
 ## Known issues
 * No real Licence is defined (https://github.com/cervoise/linuxprivcheck/issues/1).
