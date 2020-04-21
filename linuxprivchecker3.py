@@ -206,7 +206,7 @@ printResults(pwdFiles)
 print("[*] ENUMERATING PROCESSES AND APPLICATIONS...\n")
 
 if "debian" in sysInfo["KERNEL"]["results"][0] or "ubuntu" in sysInfo["KERNEL"]["results"][0]:
-    getPkgs = "dpkg -l | awk '{$1=$4=\"\"; print($0}'"  # debian)
+    getPkgs = "dpkg -l | awk '{$1=$4=\"\"; print $0}'"  # debian)
 else:
     getPkgs = "rpm -qa | sort -u"  # RH/other
 
