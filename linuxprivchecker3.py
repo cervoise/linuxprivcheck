@@ -184,7 +184,7 @@ fdPerms = {"WWDIRSROOT": {"cmd": "find / \( -wholename '/home/homedir*' -prune \
            "WWFILES": {"cmd": "find / \( -wholename '/home/homedir/*' -prune -o -wholename '/proc/*' -prune \) -o \( -type f -perm -0002 \) -exec ls -l '{}' ';' 2>/dev/null", "msg": "World Writable Files", "results": results},
            "SUID": {"cmd": "find / \( -perm -2000 -o -perm -4000 \) -exec ls -ld {} \; 2>/dev/null", "msg": "SUID/SGID Files and Directories", "results": results},
            "ROOTHOME": {"cmd": "ls -ahlR /root 2>/dev/null", "msg": "Checking if root's home folder is accessible", "results": results},
-           "CAPABILITIES": {"cmd": "getcap -r  / 2&> /dev/null", "msg": "Checking for capabilities in /usr/bin", "results": results}
+           "CAPABILITIES": {"cmd": "getcap -r  / 2> /dev/null", "msg": "Checking for capabilities in /", "results": results}
            }
 
 fdPerms = execCmd(fdPerms)
