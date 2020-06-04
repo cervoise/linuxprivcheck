@@ -147,7 +147,8 @@ printResults(driveInfo)
 
 # Scheduled Cron Jobs
 cronInfo = {"CRON": {"cmd": "ls -la /etc/cron* 2>/dev/null", "msg": "Scheduled cron jobs", "results": results},
-            "CRONW": {"cmd": "ls -aRl /etc/cron* 2>/dev/null | awk '$1 ~ /w.$/' 2>/dev/null", "msg": "Writable cron dirs", "results": results}
+            "CRONW": {"cmd": "ls -aRl /etc/cron* 2>/dev/null | awk '$1 ~ /w.$/' 2>/dev/null", "msg": "Writable cron dirs", "results": results},
+            "SYSTEMDTIMERS": {"cmd": "systemctl list-timers --all 2>/dev/null", "msg": "Systemd timers", "results": results}
             }
 
 cronInfo = execCmd(cronInfo)
@@ -162,7 +163,7 @@ userInfo = {"WHOAMI": {"cmd": "whoami", "msg": "Current User", "results": result
             "SUPUSERS": {"cmd": "grep -v -E '^#' /etc/passwd | awk -F: '$3 == 0{print $1}'", "msg": "Super Users Found:", "results": results},
             "HISTORY": {"cmd": "ls -la ~/.*_history; ls -la /root/.*_history 2>/dev/null", "msg": "Root and current user history (depends on privs)", "results": results},
             "ENV": {"cmd": "env 2>/dev/null | grep -v 'LS_COLORS'", "msg": "Environment", "results": results},
-            "GROUPS":{"cmd":"cat /etc/group |grep docker", "msg":"Users in docker group (https://fosterelli.co/privilege-escalation-via-docker.html)", "results":results},
+            "GROUPS":{"cmd":"grep 'docker\|lxd' /etc/group", "msg":"Users in docker group (https://fosterelli.co/privilege-escalation-via-docker.html) or lxc/lxd (https://github.com/initstring/lxd_root)", "results":results},
             "SUDOERS": {"cmd": "cat /etc/sudoers 2>/dev/null | grep -v '#' 2>/dev/null", "msg": "Sudoers (privileged)", "results": results},
             "LOGGEDIN": {"cmd": "w 2>/dev/null", "msg": "Logged in User Activity", "results": results},
             "SSHSESSION":{"cmd":"ls /tmp/ssh* 2>/dev/null", "msg":"SSH Agent Connexion (https://www.clockwork.com/news/2012/09/28/602/ssh_agent_hijacking/)", "results":results},
@@ -192,12 +193,16 @@ printResults(fdPerms)
 if fast:
     pwdFiles = {"LOGPWDS": {"cmd": "find /var/log -name '*.log' 2>/dev/null | xargs -l10 egrep 'pwd|password' 2>/dev/null", "msg": "Logs containing keyword 'password'", "results": results},
                 "CONFPWDS": {"cmd": "find /etc -name '*.c*' 2>/dev/null | xargs -l10 egrep 'pwd|password' 2>/dev/null", "msg": "Config files containing keyword 'password'", "results": results},
-                "SHADOW": {"cmd": "cat /etc/shadow 2>/dev/null", "msg": "Shadow File (Privileged)", "results": results}
+                "SHADOW": {"cmd": "cat /etc/shadow 2>/dev/null", "msg": "Shadow File (Privileged)", "results": results},
+                "OPASSWD": {"cmd": "cat /etc/security/opasswd 2>/dev/null", "msg": "Old passwords used by pam_cracklib", "results": results},
+                "GRUBPASS": {"cmd": "grep password /boot/grub/* 2>/dev/null", "msg": "Grub passwords or hashes", "results": results}
                }
 else:
     pwdFiles = {"LOGPWDS": {"cmd": "find /var/log -name '*.log' 2>/dev/null | xargs -l10 egrep 'pwd|password' 2>/dev/null", "msg": "Logs containing keyword 'password'", "results": results},
                 "CONFPWDS": {"cmd": "find /etc -name '*.c*' 2>/dev/null | xargs -l10 egrep 'pwd|password' 2>/dev/null", "msg": "Config files containing keyword 'password'", "results": results},
                 "SHADOW": {"cmd": "cat /etc/shadow 2>/dev/null", "msg": "Shadow File (Privileged)", "results": results},
+                "OPASSWD": {"cmd": "cat /etc/security/opasswd 2>/dev/null", "msg": "Old passwords used by pam_cracklib", "results": results},
+                "GRUBPASS": {"cmd": "grep password /boot/grub/* 2>/dev/null", "msg": "Grub passwords or hashes", "results": results},
                 "SCRIPTPWDS":{"cmd":"find / -name '*.sh' 2>/dev/null | xargs -l10 egrep 'pwd|password' 2>/dev/null", "msg":"Sh scripts containing keyword 'password'", "results":results}
                }
 
@@ -299,6 +304,7 @@ sploits = {"Linux 5.3 - Privilege Escalation via io_uring Offload of sendmsg() o
            "Linux BPF Sign Extension Local Privilege Escalation":{"minver":"5.3", "maxver":"5.4.2", "exploitdb":"45058", "lang":"c", "keywords":{"loc":["kernel"], "val":"kernel"}},
            "Linux Kernel 2.6.22 < 3.9 (x86/x64) - Dirty COW - SUID Method":{"minver":"2.6.22", "maxver":"3.9", "exploitdb":"40616", "lang":"c", "keywords":{"loc":["kernel"], "val":"kernel"}},
            "Linux Kernel 2.6.22 < 3.9  (x86/x64) - Dirty COW - Firefart":{"minver":"2.6.22", "maxver":"3.9", "exploitdb":"40839", "lang":"c", "keywords":{"loc":["kernel"], "val":"kernel"}},
+           "Linux Kernel 2.6.39 < 3.2.2 (Gentoo / Ubuntu x86/x64) - 'Mempodipper' Local Privilege Escalation":{"minver":"2.6.39", "maxver":"3.2.2", "exploitdb":"18411", "lang":"c", "keywords":{"loc":["kernel"], "val":"kernel"}},
            "2.2.x-2.4.x ptrace kmod local exploit": {"minver": "2.2", "maxver": "2.4.99", "exploitdb": "3", "lang": "c", "keywords": {"loc": ["kernel"], "val": "kernel"}},
            "< 2.4.20 Module Loader Local Root Exploit": {"minver": "0", "maxver": "2.4.20", "exploitdb": "12", "lang": "c", "keywords": {"loc": ["kernel"], "val": "kernel"}},
            "2.4.22 "'do_brk()'" local Root Exploit (PoC)": {"minver": "2.4.22", "maxver": "2.4.22", "exploitdb": "129", "lang": "asm", "keywords": {"loc": ["kernel"], "val": "kernel"}},
@@ -349,7 +355,7 @@ sploits = {"Linux 5.3 - Privilege Escalation via io_uring Offload of sendmsg() o
            "< 2.6.36-rc1 CAN BCM Privilege Escalation Exploit": {"minver": "0", "maxver": "2.6.36", "exploitdb": "14814", "lang": "c", "keywords": {"loc": ["kernel"], "val": "kernel"}},
            "Kernel ia32syscall Emulation Privilege Escalation": {"minver": "0", "maxver": "2.6.36", "exploitdb": "15023", "lang": "c", "keywords": {"loc": ["kernel"], "val": "kernel"}},
            "Linux RDS Protocol Local Privilege Escalation": {"minver": "0", "maxver": "2.6.36", "exploitdb": "15285", "lang": "c", "keywords": {"loc": ["kernel"], "val": "kernel"}},
-           "<= 2.6.37 Local Privilege Escalation": {"minver": "0", "maxver": "2.6.37", "exploitdb": "15704", "lang": "c", "keywords": {"loc": ["kernel"], "val": "kernel"}},
+           "<= 2.6.37 Local Privilege Escalation (Full Nelson)": {"minver": "0", "maxver": "2.6.37", "exploitdb": "15704", "lang": "c", "keywords": {"loc": ["kernel"], "val": "kernel"}},
            "< 2.6.37-rc2 ACPI custom_method Privilege Escalation": {"minver": "0", "maxver": "2.6.37", "exploitdb": "15774", "lang": "c", "keywords": {"loc": ["kernel"], "val": "kernel"}},
            "CAP_SYS_ADMIN to root Exploit": {"minver": "0", "maxver": "99", "exploitdb": "15916", "lang": "c", "keywords": {"loc": ["kernel"], "val": "kernel"}},
            "CAP_SYS_ADMIN to Root Exploit 2 (32 and 64-bit)": {"minver": "0", "maxver": "99", "exploitdb": "15944", "lang": "c", "keywords": {"loc": ["kernel"], "val": "kernel"}},
