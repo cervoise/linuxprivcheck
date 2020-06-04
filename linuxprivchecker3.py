@@ -165,8 +165,9 @@ userInfo = {"WHOAMI": {"cmd": "whoami", "msg": "Current User", "results": result
             "GROUPS":{"cmd":"cat /etc/group |grep docker", "msg":"Users in docker group (https://fosterelli.co/privilege-escalation-via-docker.html)", "results":results},
             "SUDOERS": {"cmd": "cat /etc/sudoers 2>/dev/null | grep -v '#' 2>/dev/null", "msg": "Sudoers (privileged)", "results": results},
             "LOGGEDIN": {"cmd": "w 2>/dev/null", "msg": "Logged in User Activity", "results": results},
-            "SSHSESSION":{"cmd":"ls /tmp/ssh* 2>/dev/null", "msg":"SSH Agent Connexion (https://www.clockwork.com/news/2012/09/28/602/ssh_agent_hijacking/)", "results":results}
-            }
+            "SSHSESSION":{"cmd":"ls /tmp/ssh* 2>/dev/null", "msg":"SSH Agent Connexion (https://www.clockwork.com/news/2012/09/28/602/ssh_agent_hijacking/)", "results":results},
+            "MULTIPLEX":{"cmd":"screen -ls 2> /dev/null || true && tmux ls 2> /dev/null", "msg":"Screen and Tmux socket (another user session may be open)", "results": results}
+           }
 
 userInfo = execCmd(userInfo)
 printResults(userInfo)
@@ -181,7 +182,8 @@ fdPerms = {"WWDIRSROOT": {"cmd": "find / \( -wholename '/home/homedir*' -prune \
            "WWDIRS": {"cmd": "find / \( -wholename '/home/homedir*' -prune \) -o \( -type d -perm -0002 \) -exec ls -ld '{}' ';' 2>/dev/null | grep -v root", "msg": "World Writeable Directories for Users other than Root", "results": results},
            "WWFILES": {"cmd": "find / \( -wholename '/home/homedir/*' -prune -o -wholename '/proc/*' -prune \) -o \( -type f -perm -0002 \) -exec ls -l '{}' ';' 2>/dev/null", "msg": "World Writable Files", "results": results},
            "SUID": {"cmd": "find / \( -perm -2000 -o -perm -4000 \) -exec ls -ld {} \; 2>/dev/null", "msg": "SUID/SGID Files and Directories", "results": results},
-           "ROOTHOME": {"cmd": "ls -ahlR /root 2>/dev/null", "msg": "Checking if root's home folder is accessible", "results": results}
+           "ROOTHOME": {"cmd": "ls -ahlR /root 2>/dev/null", "msg": "Checking if root's home folder is accessible", "results": results},
+           "CAPABILITIES": {"cmd": "getcap -r  / 2&> /dev/null", "msg": "Checking for capabilities in /usr/bin", "results": results}
            }
 
 fdPerms = execCmd(fdPerms)
@@ -279,7 +281,7 @@ devTools = {"TOOLS": {"cmd": "which awk perl python ruby gcc cc vi vim nmap find
 devTools = execCmd(devTools)
 printResults(devTools)
 
-print("[+] Related Shell Escape Sequences...\n")
+print("[+] Related Shell Escape Sequences (check https://gtfobins.github.io/)...\n")
 escapeCmd = {"vi": [":!bash", ":set shell=/bin/bash:shell"], "awk": ["awk 'BEGIN {system(\"/bin/bash\")}'"], "perl": [
     "perl -e 'exec \"/bin/bash\";'"], "python":["python -c \"import os; os.system('/bin/bash');\""], "find": ["find / -exec /usr/bin/awk 'BEGIN {system(\"/bin/bash\")}' \\;"], "nmap": ["--interactive"]}
 for cmd in escapeCmd:
