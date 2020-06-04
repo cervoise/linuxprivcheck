@@ -21,9 +21,13 @@ The *--fast* does not perform check for passwords in .sh files.
  * Add a fast options (avoid check for passwords in .sh files)
  * New check for:
    * Capabilities
+   * Systemd timers
    * Screen and Tmux opened shells
-   * Current user is member of docker group (https://fosterelli.co/privilege-escalation-via-docker.html)
-   * Check for passwords in .sh scripts
+   * Current user is member of docker group (https://fosterelli.co/privilege-escalation-via-docker.html) or lxc/lxd (https://github.com/initstring/lxd_root)
+   * Check for passwords:
+     * grub passwords or hashes
+     * passwords in .sh scripts
+     * /etc/security/opasswd
    * Check for SSH agent connexion in /tmp (https://www.clockwork.com/news/2012/09/28/602/ssh_agent_hijacking/)
  * Improve exploits part:
    * New exploits added (however I recommand to use a more complete tool for this part)
