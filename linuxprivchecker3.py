@@ -106,7 +106,7 @@ print("[*] GETTING BASIC SYSTEM INFO...\n")
 
 results = []
 
-sysInfo = {"OS": {"cmd": "cat /etc/issue", "msg": "Operating System", "results": results},
+sysInfo = {"OS": {"cmd": "hostnamectl |grep 'Operating System' |cut -d : -f 2", "msg": "Operating System", "results": results},
            "KERNEL": {"cmd": "cat /proc/version", "msg": "Kernel", "results": results},
            "HOSTNAME": {"cmd": "hostname", "msg": "Hostname", "results": results}
            }
